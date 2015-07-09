@@ -39,12 +39,12 @@ class ManagedProxyClassGeneratorTest extends Specification {
         }
 
         when:
-        def proxyClass = generate(SomeType)
-        def impl = proxyClass.newInstance(state)
+        Class<? extends SomeType> proxyClass = generate(SomeType)
+        SomeType impl = proxyClass.newInstance(state)
 
         then:
         impl instanceof ManagedInstance
-        impl.backingNode == node
+        ((ManagedInstance) impl).backingNode == node
 
         when:
         impl.value = 1
