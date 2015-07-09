@@ -38,6 +38,11 @@ public class SftpConnectorFactory implements ResourceConnectorFactory {
     }
 
     @Override
+    public Set<Class<?>> getSupportedAuthentication() {
+        return Collections.emptySet();
+    }
+
+    @Override
     public ExternalResourceConnector createResourceConnector(ResourceConnectorSpecification connectionDetails) {
         PasswordCredentials passwordCredentials = connectionDetails.getCredentials(PasswordCredentials.class);
         SftpResourceAccessor accessor = new SftpResourceAccessor(sftpClientFactory, passwordCredentials);

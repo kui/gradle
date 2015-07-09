@@ -23,5 +23,8 @@ import java.util.Set;
 public interface ResourceConnectorFactory {
     Set<String> getSupportedProtocols();
 
+    // TODO: Should be <? extends Authentication>
+    Set<Class<?>> getSupportedAuthentication();
+
     ExternalResourceConnector createResourceConnector(ResourceConnectorSpecification connectionDetails);
 }

@@ -31,6 +31,11 @@ public class S3ConnectorFactory implements ResourceConnectorFactory {
     }
 
     @Override
+    public Set<Class<?>> getSupportedAuthentication() {
+        return Collections.emptySet();
+    }
+
+    @Override
     public ExternalResourceConnector createResourceConnector(ResourceConnectorSpecification connectionDetails) {
         AwsCredentials credentials = connectionDetails.getCredentials(AwsCredentials.class);
         if(credentials == null) {

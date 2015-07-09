@@ -17,6 +17,8 @@
 package org.gradle.internal.resource.transport.http;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.authentication.BasicAuthentication;
+import org.gradle.internal.Cast;
 import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
@@ -29,6 +31,11 @@ public class HttpConnectorFactory implements ResourceConnectorFactory {
     @Override
     public Set<String> getSupportedProtocols() {
         return Sets.newHashSet("http", "https");
+    }
+
+    @Override
+    public Set<Class<?>> getSupportedAuthentication() {
+        return Cast.uncheckedCast(Sets.newHashSet(BasicAuthentication.class));
     }
 
     @Override
