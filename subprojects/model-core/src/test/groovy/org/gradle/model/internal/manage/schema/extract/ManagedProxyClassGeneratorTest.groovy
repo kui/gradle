@@ -86,6 +86,9 @@ class ManagedProxyClassGeneratorTest extends Specification {
         then:
         managedValue == "Tibor"
         1 * state.get("managedValue") >> { "Tibor" }
+
+        expect:
+        ((InternalUnmanagedType) impl).add(2, 3) == 5
     }
 
     def "mixes in toString() implementation that delegates to element state"() {
@@ -188,10 +191,16 @@ class ManagedProxyClassGeneratorTest extends Specification {
     }
 
     interface InternalUnmanagedType extends PublicUnmanagedType {
+        Integer add(Integer a, Integer b)
     }
 
     class UnmanagedImplType implements InternalUnmanagedType {
         String unmanagedValue
+
+        @Override
+        Integer add(Integer a, Integer b) {
+            return a + b
+        }
     }
 
     interface ManagedSubType extends PublicUnmanagedType {

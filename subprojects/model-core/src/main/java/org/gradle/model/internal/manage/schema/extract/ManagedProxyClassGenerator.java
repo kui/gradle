@@ -294,14 +294,8 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeDelegateMethods(ClassVisitor visitor, Type generatedType, Class<?> delegateTypeClass) {
-        ClassDetails classDetails = ClassInspector.inspect(delegateTypeClass);
-        for (PropertyDetails property : classDetails.getProperties()) {
-            for (Method method : property.getGetters()) {
-                writeDelegatedGetter(visitor, generatedType, delegateTypeClass, method);
-            }
-            for (Method method : property.getSetters()) {
-                writeDelegatedSetter(visitor, generatedType, delegateTypeClass, method);
-            }
+        for (Method delegateMethod : delegateTypeClass.getMethods()) {
+            writeDelegatedMethod(visitor, generatedType, delegateTypeClass, delegateMethod);
         }
     }
 
@@ -438,21 +432,19 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitEnd();
     }
 
-    private void writeDelegatedGetter(ClassVisitor visitor, Type generatedType, Class<?> delegateTypeClass, Method method) {
+    private void writeDelegatedMethod(ClassVisitor visitor, Type generatedType, Class<?> delegateTypeClass, Method method) {
         MethodVisitor methodVisitor = declareMethod(visitor, method);
         putDelegateFieldValueOnStack(methodVisitor, generatedType, delegateTypeClass);
+        for (int paramNo = 0; paramNo < method.getParameterCount(); paramNo++) {
+            putMethodArgumentOnStack(methodVisitor, paramNo + 1);
+        }
         invokeDelegateMethod(methodVisitor, delegateTypeClass, method);
-        castFirstStackElement(methodVisitor, method.getReturnType());
-        finishVisitingMethod(methodVisitor, Opcodes.ARETURN);
-    }
-
-    private void writeDelegatedSetter(ClassVisitor visitor, Type generatedType, Class<?> delegateTypeClass, Method method) {
-        // TODO:LPTR This needs to observe $canCallSetters
-        MethodVisitor methodVisitor = declareMethod(visitor, method);
-        putDelegateFieldValueOnStack(methodVisitor, generatedType, delegateTypeClass);
-        putFirstMethodArgumentOnStack(methodVisitor);
-        invokeDelegateMethod(methodVisitor, delegateTypeClass, method);
-        finishVisitingMethod(methodVisitor);
+        if (method.getReturnType() != Void.TYPE) {
+            castFirstStackElement(methodVisitor, method.getReturnType());
+            finishVisitingMethod(methodVisitor, Opcodes.ARETURN);
+        } else {
+            finishVisitingMethod(methodVisitor);
+        }
     }
 
     private void invokeDelegateMethod(MethodVisitor methodVisitor, Class<?> delegateTypeClass, Method method) {
