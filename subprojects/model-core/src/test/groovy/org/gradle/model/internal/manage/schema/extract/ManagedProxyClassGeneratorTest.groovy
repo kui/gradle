@@ -77,6 +77,20 @@ class ManagedProxyClassGeneratorTest extends Specification {
         then: unmanagedInstance.unmanagedValue == "Lajos"
 
         when:
+        def greeting = impl.sayHello()
+        then:
+        greeting == "Hello Lajos"
+
+        expect:
+        ((InternalUnmanagedType) impl).add(2, 3) == 5
+
+        when:
+        ((InternalUnmanagedType) impl).throwError()
+        then:
+        def ex = thrown RuntimeException
+        ex.message == "error"
+
+        when:
         impl.managedValue = "Tibor"
         then:
         1 * state.set("managedValue", "Tibor")
@@ -86,9 +100,6 @@ class ManagedProxyClassGeneratorTest extends Specification {
         then:
         managedValue == "Tibor"
         1 * state.get("managedValue") >> { "Tibor" }
-
-        expect:
-        ((InternalUnmanagedType) impl).add(2, 3) == 5
     }
 
     def "mixes in toString() implementation that delegates to element state"() {
@@ -188,10 +199,12 @@ class ManagedProxyClassGeneratorTest extends Specification {
     interface PublicUnmanagedType {
         String getUnmanagedValue()
         void setUnmanagedValue(String unmanagedValue)
+        String sayHello()
     }
 
     interface InternalUnmanagedType extends PublicUnmanagedType {
         Integer add(Integer a, Integer b)
+        void throwError()
     }
 
     class UnmanagedImplType implements InternalUnmanagedType {
@@ -200,6 +213,16 @@ class ManagedProxyClassGeneratorTest extends Specification {
         @Override
         Integer add(Integer a, Integer b) {
             return a + b
+        }
+
+        @Override
+        String sayHello() {
+            return "Hello ${unmanagedValue}"
+        }
+
+        @Override
+        void throwError() {
+            throw new RuntimeException("error")
         }
     }
 
