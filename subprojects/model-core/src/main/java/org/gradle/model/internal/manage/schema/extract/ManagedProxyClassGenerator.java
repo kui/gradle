@@ -440,7 +440,6 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         }
         invokeDelegateMethod(methodVisitor, delegateTypeClass, method);
         if (method.getReturnType() != Void.TYPE) {
-            castFirstStackElement(methodVisitor, method.getReturnType());
             finishVisitingMethod(methodVisitor, Opcodes.ARETURN);
         } else {
             finishVisitingMethod(methodVisitor);
