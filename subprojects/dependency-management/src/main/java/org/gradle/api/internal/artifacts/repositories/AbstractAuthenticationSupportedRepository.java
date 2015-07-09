@@ -17,6 +17,8 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.authentication.Authentication;
+import org.gradle.api.authentication.BasicAuthentication;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.internal.Cast;
@@ -24,10 +26,14 @@ import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInterna
 import org.gradle.internal.credentials.DefaultAwsCredentials;
 import org.gradle.internal.reflect.Instantiator;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public abstract class AbstractAuthenticationSupportedRepository extends AbstractArtifactRepository implements AuthenticationSupportedInternal {
 
     private Credentials credentials;
     private final Instantiator instantiator;
+    private Set<Authentication> authenticationProtocols = new HashSet<Authentication>();
 
     AbstractAuthenticationSupportedRepository(Instantiator instantiator) {
         this.instantiator = instantiator;
@@ -51,7 +57,7 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
         } else if (credentialsType.isInstance(credentials)) {
             return Cast.uncheckedCast(credentials);
         } else {
-            throw new IllegalArgumentException(String.format("Given credentials type '%s' does not match actual type '%s'", credentialsType.getName(), getPublicType(credentials.getClass()).getName()));
+            throw new IllegalArgumentException(String.format("Given credentials type '%s' does not match actual type '%s'", credentialsType.getName(), getCredentialsPublicType(credentials.getClass()).getName()));
         }
     }
 
@@ -73,17 +79,31 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
     }
 
     private <T extends Credentials> T newCredentials(Class<T> clazz) {
-        return instantiator.newInstance(getImplType(clazz));
+        return instantiator.newInstance(getCredentialsImplType(clazz));
     }
 
     public Credentials getConfiguredCredentials() {
         return credentials;
     }
 
+    @Override
+    public <T extends Authentication> void authentication(Class<T> authenticationType) {
+        authenticationProtocols.add(newAuthentication(authenticationType));
+    }
+
+    @Override
+    public Set<? extends Authentication> getAuthentication() {
+        return authenticationProtocols;
+    }
+
+    private <T extends Authentication> T newAuthentication(Class<T> clazz) {
+        return instantiator.newInstance(getAuthenticationImplType(clazz));
+    }
+
     // Mappings between public and impl types
     // If the list of mappings grows we should move it to a data structure
 
-    private static <T extends Credentials> Class<? extends T> getImplType(Class<T> publicType) {
+    private static <T extends Credentials> Class<? extends T> getCredentialsImplType(Class<T> publicType) {
         if (publicType == PasswordCredentials.class) {
             return Cast.uncheckedCast(DefaultPasswordCredentials.class);
         } else if (publicType == AwsCredentials.class) {
@@ -93,7 +113,15 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
         }
     }
 
-    private static <T extends Credentials> Class<? super T> getPublicType(Class<T> implType) {
+    private static <T extends Authentication> Class<? extends T> getAuthenticationImplType(Class<T> publicType) {
+        if (publicType == BasicAuthentication.class) {
+            return Cast.uncheckedCast(BasicAuthentication.class);
+        } else {
+            throw new IllegalArgumentException(String.format("Unknown authentication type: '%s' (supported types: %s).", publicType.getName(), BasicAuthentication.class.getName()));
+        }
+    }
+
+    private static <T extends Credentials> Class<? super T> getCredentialsPublicType(Class<T> implType) {
         if (PasswordCredentials.class.isAssignableFrom(implType)) {
             return Cast.uncheckedCast(PasswordCredentials.class);
         } else if (AwsCredentials.class.isAssignableFrom(implType)) {

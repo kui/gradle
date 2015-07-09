@@ -115,7 +115,8 @@ must not be used. Often, build users are not particularly opinionated regarding 
 ### Test Coverage
 
 - Build fails with error when specifying an authentication protocol for an unsupported transport protocol (currently only HTTP should be supported)
-- Build fails when specifying an authentication protocol when no credentials have been specified
+- Build fails with error when specifying an authentication protocol when no credentials have been specified
+- Build fails with error when specified credentials type is not supported by specified authentication protocol
 - All supported authentication protocols are attempted when none are specified
 - When authentication protocols are specified, only those are attempted
 
