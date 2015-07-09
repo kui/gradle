@@ -434,11 +434,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
     private void writeDelegatedMethod(ClassVisitor visitor, Type generatedType, Class<?> delegateTypeClass, Method method) {
         MethodVisitor methodVisitor = declareMethod(visitor, method);
-        putDelegateFieldValueOnStack(methodVisitor, generatedType, delegateTypeClass);
-        for (int paramNo = 0; paramNo < method.getParameterCount(); paramNo++) {
-            putMethodArgumentOnStack(methodVisitor, paramNo + 1);
-        }
-        invokeDelegateMethod(methodVisitor, delegateTypeClass, method);
+        invokeDelegateMethod(methodVisitor, generatedType, delegateTypeClass, method);
         if (method.getReturnType() != Void.TYPE) {
             finishVisitingMethod(methodVisitor, Opcodes.ARETURN);
         } else {
@@ -446,7 +442,11 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         }
     }
 
-    private void invokeDelegateMethod(MethodVisitor methodVisitor, Class<?> delegateTypeClass, Method method) {
+    private void invokeDelegateMethod(MethodVisitor methodVisitor, Type generatedType, Class<?> delegateTypeClass, Method method) {
+        putDelegateFieldValueOnStack(methodVisitor, generatedType, delegateTypeClass);
+        for (int paramNo = 0; paramNo < method.getParameterCount(); paramNo++) {
+            putMethodArgumentOnStack(methodVisitor, paramNo + 1);
+        }
         methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getInternalName(delegateTypeClass), method.getName(), Type.getMethodDescriptor(method), true);
     }
 
