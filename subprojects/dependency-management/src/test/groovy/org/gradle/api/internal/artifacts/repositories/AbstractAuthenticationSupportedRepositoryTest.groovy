@@ -23,6 +23,7 @@ import org.gradle.api.authentication.BasicAuthentication
 import org.gradle.api.credentials.AwsCredentials
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.ClosureBackedAction
+import org.gradle.api.internal.authentication.DefaultBasicAuthentication
 import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -194,11 +195,11 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         repo.authentication(authenticationType) == authentication
 
         then:
-        1 * instantiator.newInstance(_) >> authentication
+        1 * instantiator.newInstance(implementationType) >> authentication
 
         where:
-        authenticationType  | authentication
-        BasicAuthentication | Mock(BasicAuthentication)
+        authenticationType  | implementationType         || authentication
+        BasicAuthentication | DefaultBasicAuthentication || Mock(BasicAuthentication)
     }
 
     def "authentication(Class) throws IAE with authentication of unknown type"() {
