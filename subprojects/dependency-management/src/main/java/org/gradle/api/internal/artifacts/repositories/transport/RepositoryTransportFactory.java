@@ -121,6 +121,10 @@ public class RepositoryTransportFactory {
     }
 
     private void validateConnectorFactoryCredentials(ResourceConnectorFactory factory, Credentials credentials, Set<Authentication> authentications) {
+        if (authentications.size() > 0 && credentials == null) {
+            throw new InvalidUserDataException("You cannot configure authentication protocols for a repository if no credentials are provided.");
+        }
+
         for (Authentication authentication : authentications) {
             boolean isAuthenticationSupported = false;
             for (Class<?> authenticationType : factory.getSupportedAuthentication()) {

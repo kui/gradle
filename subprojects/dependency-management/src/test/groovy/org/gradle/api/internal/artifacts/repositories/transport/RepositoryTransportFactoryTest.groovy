@@ -119,6 +119,15 @@ class RepositoryTransportFactoryTest extends Specification {
         ex.message == "Credentials type of '${credentials.class.simpleName}' is not supported by authentication protocols ${[authentication.class.simpleName]}"
     }
 
+    def "should throw when specifying authentication types with null credentials"() {
+        when:
+        repositoryTransportFactory.createTransport(['protocol1'] as Set, null, null, ([new GoodAuthentication()] as Set))
+
+        then:
+        def ex = thrown(InvalidUserDataException)
+        ex.message == "You cannot configure authentication protocols for a repository if no credentials are provided."
+    }
+
     private class GoodAuthentication implements AuthenticationInternal {
         @Override
         Set<Class<? extends Credentials>> getSupportedCredentials() {
