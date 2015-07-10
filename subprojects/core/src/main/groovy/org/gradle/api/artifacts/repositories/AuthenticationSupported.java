@@ -19,12 +19,12 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.authentication.Authentication;
 import org.gradle.api.credentials.Credentials;
-
-import java.util.Set;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * An artifact repository which supports username/password authentication.
  */
+@HasInternalProtocol
 public interface AuthenticationSupported {
 
     /**
@@ -126,12 +126,4 @@ public interface AuthenticationSupported {
      */
     @Incubating
     <T extends Authentication> void authentication(Class<T> authenticationType);
-
-    /**
-     * Returns the set of configuration authentication protocols for this repository.
-     *
-     * @return The authentication protocols
-     */
-    @Incubating
-    Set<? extends Authentication> getAuthentication();
 }

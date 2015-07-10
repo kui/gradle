@@ -92,7 +92,7 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
     }
 
     @Override
-    public Set<? extends Authentication> getAuthentication() {
+    public Set<Authentication> getConfiguredAuthentications() {
         return authenticationProtocols;
     }
 
