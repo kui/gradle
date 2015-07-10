@@ -18,12 +18,11 @@ package org.gradle.api.internal.artifacts.repositories.transport;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.authentication.Authentication;
-import org.gradle.api.internal.authentication.AuthenticationInternal;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.authentication.AuthenticationInternal;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
@@ -33,7 +32,6 @@ import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTranspo
 import org.gradle.internal.resource.transport.file.FileTransport;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
-import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;

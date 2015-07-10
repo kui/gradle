@@ -15,16 +15,16 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories.transport
+
 import com.google.common.collect.Lists
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
-import org.gradle.api.internal.authentication.AuthenticationInternal
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
+import org.gradle.api.internal.authentication.AuthenticationInternal
 import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTransport
-import org.junit.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 
