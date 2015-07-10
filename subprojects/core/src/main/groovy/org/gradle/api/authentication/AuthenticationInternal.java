@@ -16,15 +16,10 @@
 
 package org.gradle.api.authentication;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.NonExtensible;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.credentials.Credentials;
 
-/**
- * Base interface for transport authentication protocols.
- */
-@Incubating
-@NonExtensible
-@HasInternalProtocol
-public interface Authentication {
+import java.util.Set;
+
+public interface AuthenticationInternal extends Authentication {
+    Set<Class<? extends Credentials>> getSupportedCredentials();
 }
