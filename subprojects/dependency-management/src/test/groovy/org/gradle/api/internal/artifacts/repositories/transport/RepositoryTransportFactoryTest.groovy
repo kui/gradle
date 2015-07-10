@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
 import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTransport
+import org.junit.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -35,7 +36,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
     def setup() {
         connectorFactory1.getSupportedProtocols() >> (["protocol1"] as Set)
-        connectorFactory1.getSupportedAuthentication() >> ([GoodAuthentication] as Set)
+        connectorFactory1.getSupportedAuthentication() >> ([GoodCredentialsAuthentication, BadCredentialsAuthentication] as Set)
         connectorFactory2.getSupportedProtocols() >> (["protocol2a", "protocol2b"] as Set)
         connectorFactory2.getSupportedAuthentication() >> ([] as Set)
         List<ResourceConnectorFactory> resourceConnectorFactories = Lists.newArrayList(connectorFactory1, connectorFactory2)
@@ -81,7 +82,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
     def "should create transport for known scheme, authentication and credentials"() {
         def credentials = Mock(GoodCredentials)
-        def authentication = new GoodAuthentication()
+        def authentication = new GoodCredentialsAuthentication()
 
         when:
         def transport = repositoryTransportFactory.createTransport(['protocol1'] as Set, null, credentials, ([authentication] as Set))
@@ -102,40 +103,59 @@ class RepositoryTransportFactoryTest extends Specification {
         ex.message == "Authentication type of '${authentication.class.simpleName}' is not supported by protocols ${protocols}"
 
         where:
-        authentication           | protocols
-        new BadAuthentication()  | ['protocol1']
-        new GoodAuthentication() | ['protocol2a', 'protocol2b']
+        authentication                      | protocols
+        new NoCredentialsAuthentication()   | ['protocol1']
+        new GoodCredentialsAuthentication() | ['protocol2a', 'protocol2b']
     }
 
     def "should throw when using invalid credentials type"() {
         def credentials = Mock(BadCredentials)
-        def authentication = new GoodAuthentication()
+        def authentication = new GoodCredentialsAuthentication()
 
         when:
         repositoryTransportFactory.createTransport(['protocol1'] as Set, null, credentials, ([authentication] as Set))
 
         then:
         def ex = thrown(InvalidUserDataException)
-        ex.message == "Credentials type of '${credentials.class.simpleName}' is not supported by authentication protocols ${[authentication.class.simpleName]}"
+        ex.message == "Credentials type of '${credentials.class.simpleName}' is not supported by authentication protocol '${authentication.class.simpleName}'"
+    }
+
+    def "should throw when credentials not supported by all authentication types"() {
+        def credentials = Mock(GoodCredentials)
+        def authentications = [new GoodCredentialsAuthentication(), new BadCredentialsAuthentication()] as Set
+
+        when:
+        repositoryTransportFactory.createTransport(['protocol1'] as Set, null, credentials, authentications)
+
+        then:
+        def ex = thrown(InvalidUserDataException)
+        ex.message == "Credentials type of '${credentials.class.simpleName}' is not supported by authentication protocol '${BadCredentialsAuthentication.class.simpleName}'"
     }
 
     def "should throw when specifying authentication types with null credentials"() {
         when:
-        repositoryTransportFactory.createTransport(['protocol1'] as Set, null, null, ([new GoodAuthentication()] as Set))
+        repositoryTransportFactory.createTransport(['protocol1'] as Set, null, null, ([new GoodCredentialsAuthentication()] as Set))
 
         then:
         def ex = thrown(InvalidUserDataException)
         ex.message == "You cannot configure authentication protocols for a repository if no credentials are provided."
     }
 
-    private class GoodAuthentication implements AuthenticationInternal {
+    private class GoodCredentialsAuthentication implements AuthenticationInternal {
         @Override
         Set<Class<? extends Credentials>> getSupportedCredentials() {
             return ([GoodCredentials] as Set)
         }
     }
 
-    private class BadAuthentication implements AuthenticationInternal {
+    private class BadCredentialsAuthentication implements AuthenticationInternal {
+        @Override
+        Set<Class<? extends Credentials>> getSupportedCredentials() {
+            return ([BadCredentials] as Set)
+        }
+    }
+
+    private class NoCredentialsAuthentication implements AuthenticationInternal {
         @Override
         Set<Class<? extends Credentials>> getSupportedCredentials() {
             return ([] as Set)

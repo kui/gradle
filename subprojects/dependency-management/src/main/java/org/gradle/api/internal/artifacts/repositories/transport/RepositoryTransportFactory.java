@@ -139,23 +139,11 @@ public class RepositoryTransportFactory {
                     authentication.getClass().getSimpleName(), factory.getSupportedProtocols()));
             }
 
-            boolean isCredentialsSupported = false;
             for (Class<? extends Credentials> credentialsType : ((AuthenticationInternal)authentication).getSupportedCredentials()) {
-                if (credentialsType.isAssignableFrom(credentials.getClass())) {
-                    isCredentialsSupported = true;
-                    break;
+                if (!credentialsType.isAssignableFrom(credentials.getClass())) {
+                    throw new InvalidUserDataException(String.format("Credentials type of '%s' is not supported by authentication protocol '%s'",
+                        credentials.getClass().getSimpleName(), authentication.getClass().getSimpleName()));
                 }
-            }
-
-            if (!isCredentialsSupported) {
-                Set<String> authenticationTypeNames = CollectionUtils.collect(authentications, new Transformer<String, Authentication>() {
-                    @Override
-                    public String transform(Authentication authentication) {
-                        return authentication.getClass().getSimpleName();
-                    }
-                });
-                throw new InvalidUserDataException(String.format("Credentials type of '%s' is not supported by authentication protocols %s",
-                    credentials.getClass().getSimpleName(), authenticationTypeNames));
             }
         }
     }
