@@ -16,10 +16,12 @@
 
 package org.gradle.api.authentication;
 
+import org.gradle.api.NonExtensible;
 import org.gradle.api.credentials.Credentials;
 
 import java.util.Set;
 
+@NonExtensible
 public interface AuthenticationInternal extends Authentication {
     Set<Class<? extends Credentials>> getSupportedCredentials();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.authentication;
+package org.gradle.api.credentials;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NonExtensible;
-import org.gradle.internal.HasInternalProtocol;
 
 /**
- * Base interface for transport authentication protocols.
- */
+ * Base interface for credentials used for different authentication purposes.
+ * (e.g authenticated {@link org.gradle.api.artifacts.dsl.RepositoryHandler})
+ * */
 @Incubating
-@NonExtensible
-@HasInternalProtocol
-public interface Authentication {
+public interface Credentials {
 }

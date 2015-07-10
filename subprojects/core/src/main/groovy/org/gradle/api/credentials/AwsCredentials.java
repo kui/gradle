@@ -17,11 +17,13 @@
 package org.gradle.api.credentials;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.NonExtensible;
 
 /**
  * Represents credentials used to authenticate with Amazon Web Services.
  */
 @Incubating
+@NonExtensible
 public interface AwsCredentials extends Credentials {
 
     /**

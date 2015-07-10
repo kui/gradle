@@ -15,11 +15,13 @@
  */
 package org.gradle.api.artifacts.repositories;
 
+import org.gradle.api.NonExtensible;
 import org.gradle.api.credentials.Credentials;
 
 /**
  * A username/password credentials that can be used to login to password-protected remote repository.
  */
+@NonExtensible
 public interface PasswordCredentials extends Credentials {
 
     /**
