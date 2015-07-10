@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.authentication;
+package org.gradle.api.internal.authentication;
 
 import org.gradle.api.NonExtensible;
+import org.gradle.api.authentication.Authentication;
 import org.gradle.api.credentials.Credentials;
 
 import java.util.Set;
