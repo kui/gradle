@@ -25,6 +25,7 @@ import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTransport
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class RepositoryTransportFactoryTest extends Specification {
 
@@ -36,6 +37,7 @@ class RepositoryTransportFactoryTest extends Specification {
         connectorFactory1.getSupportedProtocols() >> (["protocol1"] as Set)
         connectorFactory1.getSupportedAuthentication() >> ([GoodAuthentication] as Set)
         connectorFactory2.getSupportedProtocols() >> (["protocol2a", "protocol2b"] as Set)
+        connectorFactory2.getSupportedAuthentication() >> ([] as Set)
         List<ResourceConnectorFactory> resourceConnectorFactories = Lists.newArrayList(connectorFactory1, connectorFactory2)
         repositoryTransportFactory = new RepositoryTransportFactory(resourceConnectorFactories, null, null, null, null, null)
     }
@@ -88,17 +90,21 @@ class RepositoryTransportFactoryTest extends Specification {
         transport.class == ResourceConnectorRepositoryTransport
     }
 
+    @Unroll
     def "should throw when using invalid authentication type"() {
         def credentials = Mock(GoodCredentials)
-        def authentication = new BadAuthentication()
-        def protocol = 'protocol1'
 
         when:
-        repositoryTransportFactory.createTransport([protocol] as Set, null, credentials, ([authentication] as Set))
+        repositoryTransportFactory.createTransport(protocols as Set, null, credentials, ([authentication] as Set))
 
         then:
         def ex = thrown(InvalidUserDataException)
-        ex.message == "Authentication type of '${authentication.class.simpleName}' is not supported by protocols [${protocol}]"
+        ex.message == "Authentication type of '${authentication.class.simpleName}' is not supported by protocols ${protocols}"
+
+        where:
+        authentication           | protocols
+        new BadAuthentication()  | ['protocol1']
+        new GoodAuthentication() | ['protocol2a', 'protocol2b']
     }
 
     def "should throw when using invalid credentials type"() {
