@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transport.aws.s3;
 
+import org.gradle.api.authentication.Authentication;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
@@ -31,7 +32,7 @@ public class S3ConnectorFactory implements ResourceConnectorFactory {
     }
 
     @Override
-    public Set<Class<?>> getSupportedAuthentication() {
+    public Set<Class<? extends Authentication>> getSupportedAuthentication() {
         return Collections.emptySet();
     }
 

@@ -18,7 +18,10 @@ package org.gradle.api.internal.artifacts.repositories.transport;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.authentication.Authentication;
+import org.gradle.api.internal.authentication.AuthenticationInternal;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -30,6 +33,7 @@ import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTranspo
 import org.gradle.internal.resource.transport.file.FileTransport;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
+import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -75,8 +79,8 @@ public class RepositoryTransportFactory {
         return validSchemes;
     }
 
-    public RepositoryTransport createTransport(String scheme, String name, Credentials credentials) {
-        return createTransport(Collections.singleton(scheme), name, credentials);
+    public RepositoryTransport createTransport(String scheme, String name, Credentials credentials, Set<Authentication> authentications) {
+        return createTransport(Collections.singleton(scheme), name, credentials, authentications);
     }
 
     /**
@@ -90,7 +94,7 @@ public class RepositoryTransportFactory {
         return new org.gradle.internal.resource.PasswordCredentials(passwordCredentials.getUsername(), passwordCredentials.getPassword());
     }
 
-    public RepositoryTransport createTransport(Set<String> schemes, String name, Credentials credentials) {
+    public RepositoryTransport createTransport(Set<String> schemes, String name, Credentials credentials, Set<Authentication> authentications) {
         validateSchemes(schemes);
 
         // File resources are handled slightly differently at present.
@@ -98,7 +102,12 @@ public class RepositoryTransportFactory {
             return new FileTransport(name);
         }
         ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(credentials);
-        ExternalResourceConnector resourceConnector = findConnectorFactory(schemes).createResourceConnector(connectionDetails);
+        ResourceConnectorFactory connectorFactory = findConnectorFactory(schemes);
+
+        // Ensure resource transport protocol, authentication types and credentials are all compatible
+        validateConnectorFactoryCredentials(connectorFactory, credentials, authentications);
+
+        ExternalResourceConnector resourceConnector = connectorFactory.createResourceConnector(connectionDetails);
         return new ResourceConnectorRepositoryTransport(name, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, cacheLockingManager, resourceConnector);
     }
 
@@ -107,6 +116,42 @@ public class RepositoryTransportFactory {
         for (String scheme : schemes) {
             if (!validSchemes.contains(scheme)) {
                 throw new InvalidUserDataException(String.format("Not a supported repository protocol '%s': valid protocols are %s", scheme, validSchemes));
+            }
+        }
+    }
+
+    private void validateConnectorFactoryCredentials(ResourceConnectorFactory factory, Credentials credentials, Set<Authentication> authentications) {
+        for (Authentication authentication : authentications) {
+            boolean isAuthenticationSupported = false;
+            for (Class<?> authenticationType : factory.getSupportedAuthentication()) {
+                if (authenticationType.isAssignableFrom(authentication.getClass())) {
+                    isAuthenticationSupported = true;
+                    break;
+                }
+            }
+
+            if (!isAuthenticationSupported) {
+                throw new InvalidUserDataException(String.format("Authentication type of '%s' is not supported by protocols %s",
+                    authentication.getClass().getSimpleName(), factory.getSupportedProtocols()));
+            }
+
+            boolean isCredentialsSupported = false;
+            for (Class<? extends Credentials> credentialsType : ((AuthenticationInternal)authentication).getSupportedCredentials()) {
+                if (credentialsType.isAssignableFrom(credentials.getClass())) {
+                    isCredentialsSupported = true;
+                    break;
+                }
+            }
+
+            if (!isCredentialsSupported) {
+                Set<String> authenticationTypeNames = CollectionUtils.collect(authentications, new Transformer<String, Authentication>() {
+                    @Override
+                    public String transform(Authentication authentication) {
+                        return authentication.getClass().getSimpleName();
+                    }
+                });
+                throw new InvalidUserDataException(String.format("Credentials type of '%s' is not supported by authentication protocols %s",
+                    credentials.getClass().getSimpleName(), authenticationTypeNames));
             }
         }
     }

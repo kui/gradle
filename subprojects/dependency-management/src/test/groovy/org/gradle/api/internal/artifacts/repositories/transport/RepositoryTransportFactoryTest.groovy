@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.repositories.transport
 import com.google.common.collect.Lists
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.internal.authentication.AuthenticationInternal
+import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
 import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
@@ -32,6 +34,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
     def setup() {
         connectorFactory1.getSupportedProtocols() >> (["protocol1"] as Set)
+        connectorFactory1.getSupportedAuthentication() >> ([GoodAuthentication] as Set)
         connectorFactory2.getSupportedProtocols() >> (["protocol2a", "protocol2b"] as Set)
         List<ResourceConnectorFactory> resourceConnectorFactories = Lists.newArrayList(connectorFactory1, connectorFactory2)
         repositoryTransportFactory = new RepositoryTransportFactory(resourceConnectorFactories, null, null, null, null, null)
@@ -39,7 +42,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
     def "cannot create a transport for url with unsupported scheme"() {
         when:
-        repositoryTransportFactory.createTransport(['unsupported'] as Set, null, null)
+        repositoryTransportFactory.createTransport(['unsupported'] as Set, null, null, ([] as Set))
 
         then:
         InvalidUserDataException e = thrown()
@@ -48,7 +51,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
     def "cannot creates a transport for mixed url scheme"() {
         when:
-        repositoryTransportFactory.createTransport(['protocol1', 'protocol2b'] as Set, null, null)
+        repositoryTransportFactory.createTransport(['protocol1', 'protocol2b'] as Set, null, null, ([] as Set))
 
         then:
         InvalidUserDataException e = thrown()
@@ -59,7 +62,7 @@ class RepositoryTransportFactoryTest extends Specification {
         def credentials = Mock(DefaultPasswordCredentials)
 
         when:
-        def transport = repositoryTransportFactory.createTransport(['protocol1'] as Set, null, credentials)
+        def transport = repositoryTransportFactory.createTransport(['protocol1'] as Set, null, credentials, ([] as Set))
 
         then:
         transport.class == ResourceConnectorRepositoryTransport
@@ -73,4 +76,58 @@ class RepositoryTransportFactoryTest extends Specification {
         def ex = thrown(IllegalArgumentException)
         ex.message == "Credentials must be an instance of: ${PasswordCredentials.class.getCanonicalName()}"
     }
+
+    def "should create transport for known scheme, authentication and credentials"() {
+        def credentials = Mock(GoodCredentials)
+        def authentication = new GoodAuthentication()
+
+        when:
+        def transport = repositoryTransportFactory.createTransport(['protocol1'] as Set, null, credentials, ([authentication] as Set))
+
+        then:
+        transport.class == ResourceConnectorRepositoryTransport
+    }
+
+    def "should throw when using invalid authentication type"() {
+        def credentials = Mock(GoodCredentials)
+        def authentication = new BadAuthentication()
+        def protocol = 'protocol1'
+
+        when:
+        repositoryTransportFactory.createTransport([protocol] as Set, null, credentials, ([authentication] as Set))
+
+        then:
+        def ex = thrown(InvalidUserDataException)
+        ex.message == "Authentication type of '${authentication.class.simpleName}' is not supported by protocols [${protocol}]"
+    }
+
+    def "should throw when using invalid credentials type"() {
+        def credentials = Mock(BadCredentials)
+        def authentication = new GoodAuthentication()
+
+        when:
+        repositoryTransportFactory.createTransport(['protocol1'] as Set, null, credentials, ([authentication] as Set))
+
+        then:
+        def ex = thrown(InvalidUserDataException)
+        ex.message == "Credentials type of '${credentials.class.simpleName}' is not supported by authentication protocols ${[authentication.class.simpleName]}"
+    }
+
+    private class GoodAuthentication implements AuthenticationInternal {
+        @Override
+        Set<Class<? extends Credentials>> getSupportedCredentials() {
+            return ([GoodCredentials] as Set)
+        }
+    }
+
+    private class BadAuthentication implements AuthenticationInternal {
+        @Override
+        Set<Class<? extends Credentials>> getSupportedCredentials() {
+            return ([] as Set)
+        }
+    }
+
+    private interface GoodCredentials extends Credentials {}
+
+    private interface BadCredentials extends Credentials {}
 }

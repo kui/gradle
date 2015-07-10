@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transport.sftp;
 
+import org.gradle.api.authentication.Authentication;
 import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
@@ -38,7 +39,7 @@ public class SftpConnectorFactory implements ResourceConnectorFactory {
     }
 
     @Override
-    public Set<Class<?>> getSupportedAuthentication() {
+    public Set<Class<? extends Authentication>> getSupportedAuthentication() {
         return Collections.emptySet();
     }
 

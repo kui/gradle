@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.connector;
 
+import org.gradle.api.authentication.Authentication;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 
 import java.util.Set;
@@ -23,8 +24,7 @@ import java.util.Set;
 public interface ResourceConnectorFactory {
     Set<String> getSupportedProtocols();
 
-    // TODO: Should be <? extends Authentication>
-    Set<Class<?>> getSupportedAuthentication();
+    Set<Class<? extends Authentication>> getSupportedAuthentication();
 
     ExternalResourceConnector createResourceConnector(ResourceConnectorSpecification connectionDetails);
 }

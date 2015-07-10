@@ -17,14 +17,15 @@
 package org.gradle.internal.resource.transport.http;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.authentication.Authentication;
 import org.gradle.api.authentication.BasicAuthentication;
-import org.gradle.internal.Cast;
 import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.DefaultExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class HttpConnectorFactory implements ResourceConnectorFactory {
@@ -34,8 +35,10 @@ public class HttpConnectorFactory implements ResourceConnectorFactory {
     }
 
     @Override
-    public Set<Class<?>> getSupportedAuthentication() {
-        return Cast.uncheckedCast(Sets.newHashSet(BasicAuthentication.class));
+    public Set<Class<? extends Authentication>> getSupportedAuthentication() {
+        Set<Class<? extends Authentication>> supported = new HashSet<Class<? extends Authentication>>();
+        supported.add(BasicAuthentication.class);
+        return supported;
     }
 
     @Override
