@@ -108,28 +108,19 @@ class RepositoryTransportFactoryTest extends Specification {
         new GoodCredentialsAuthentication() | ['protocol2a', 'protocol2b']
     }
 
+    @Unroll
     def "should throw when using invalid credentials type"() {
-        def credentials = Mock(BadCredentials)
-        def authentication = new GoodCredentialsAuthentication()
-
         when:
-        repositoryTransportFactory.createTransport(['protocol1'] as Set, null, credentials, ([authentication] as Set))
+        repositoryTransportFactory.createTransport(['protocol1'] as Set, null, credentials, authentication)
 
         then:
         def ex = thrown(InvalidUserDataException)
-        ex.message == "Credentials type of '${credentials.class.simpleName}' is not supported by authentication protocol '${authentication.class.simpleName}'"
-    }
+        ex.message == "Credentials type of '${credentials.class.simpleName}' is not supported by authentication protocol '${invalidType.simpleName}'"
 
-    def "should throw when credentials not supported by all authentication types"() {
-        def credentials = Mock(GoodCredentials)
-        def authentications = [new GoodCredentialsAuthentication(), new BadCredentialsAuthentication()] as Set
-
-        when:
-        repositoryTransportFactory.createTransport(['protocol1'] as Set, null, credentials, authentications)
-
-        then:
-        def ex = thrown(InvalidUserDataException)
-        ex.message == "Credentials type of '${credentials.class.simpleName}' is not supported by authentication protocol '${BadCredentialsAuthentication.class.simpleName}'"
+        where:
+        credentials           | authentication                                                                   || invalidType
+        Mock(BadCredentials)  | [new GoodCredentialsAuthentication()] as Set                                     || GoodCredentialsAuthentication
+        Mock(GoodCredentials) | [new GoodCredentialsAuthentication(), new BadCredentialsAuthentication()] as Set || BadCredentialsAuthentication
     }
 
     def "should throw when specifying authentication types with null credentials"() {
