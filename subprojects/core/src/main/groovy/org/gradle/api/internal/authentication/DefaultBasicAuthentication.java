@@ -16,17 +16,18 @@
 
 package org.gradle.api.internal.authentication;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.authentication.BasicAuthentication;
 import org.gradle.api.credentials.Credentials;
-import org.gradle.internal.Cast;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class DefaultBasicAuthentication implements BasicAuthentication {
     @Override
     public Set<Class<? extends Credentials>> getSupportedCredentials() {
-        return Cast.uncheckedCast(Sets.newHashSet(PasswordCredentials.class));
+        Set<Class<? extends Credentials>> supported = new HashSet<Class<? extends Credentials>>();
+        supported.add(PasswordCredentials.class);
+        return supported;
     }
 }
