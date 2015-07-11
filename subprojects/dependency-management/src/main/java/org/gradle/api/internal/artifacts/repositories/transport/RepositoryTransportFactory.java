@@ -99,7 +99,7 @@ public class RepositoryTransportFactory {
         if (Collections.singleton("file").containsAll(schemes)) {
             return new FileTransport(name);
         }
-        ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(credentials);
+        ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(credentials, authentications);
         ResourceConnectorFactory connectorFactory = findConnectorFactory(schemes);
 
         // Ensure resource transport protocol, authentication types and credentials are all compatible
@@ -157,9 +157,11 @@ public class RepositoryTransportFactory {
 
     private class DefaultResourceConnectorSpecification implements ResourceConnectorSpecification {
         private final Credentials credentials;
+        private final Set<Authentication> authentications;
 
-        private DefaultResourceConnectorSpecification(Credentials credentials) {
+        private DefaultResourceConnectorSpecification(Credentials credentials, Set<Authentication> authentications) {
             this.credentials = credentials;
+            this.authentications = authentications;
         }
 
         @Override
@@ -175,6 +177,11 @@ public class RepositoryTransportFactory {
             } else {
                 throw new IllegalArgumentException(String.format("Credentials must be an instance of '%s'.", type.getCanonicalName()));
             }
+        }
+
+        @Override
+        public Set<Authentication> getAuthentications() {
+            return authentications;
         }
     }
 }
