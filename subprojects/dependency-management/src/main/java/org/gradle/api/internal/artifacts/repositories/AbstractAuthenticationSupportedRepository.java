@@ -19,9 +19,11 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.authentication.Authentication;
 import org.gradle.api.authentication.BasicAuthentication;
+import org.gradle.api.authentication.DigestAuthentication;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.authentication.DefaultBasicAuthentication;
+import org.gradle.api.internal.authentication.DefaultDigestAuthentication;
 import org.gradle.internal.Cast;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.credentials.DefaultAwsCredentials;
@@ -117,6 +119,8 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
     private static <T extends Authentication> Class<? extends T> getAuthenticationImplType(Class<T> publicType) {
         if (publicType == BasicAuthentication.class) {
             return Cast.uncheckedCast(DefaultBasicAuthentication.class);
+        } else if (publicType == DigestAuthentication.class) {
+            return Cast.uncheckedCast(DefaultDigestAuthentication.class);
         } else {
             throw new IllegalArgumentException(String.format("Unknown authentication type: '%s' (supported types: %s).", publicType.getName(), BasicAuthentication.class.getName()));
         }

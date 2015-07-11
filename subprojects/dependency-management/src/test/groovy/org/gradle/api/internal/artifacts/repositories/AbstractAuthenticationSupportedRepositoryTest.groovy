@@ -20,10 +20,12 @@ import org.gradle.api.Action
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.authentication.Authentication
 import org.gradle.api.authentication.BasicAuthentication
+import org.gradle.api.authentication.DigestAuthentication
 import org.gradle.api.credentials.AwsCredentials
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.authentication.DefaultBasicAuthentication
+import org.gradle.api.internal.authentication.DefaultDigestAuthentication
 import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -187,7 +189,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
     }
 
     @Unroll
-    def "authentication(Class) instantiates the correct authentication types "() {
+    def "authentication(Class) can instantiate #authenticationType"() {
         Instantiator instantiator = Mock()
         AuthSupportedRepository repo = new AuthSupportedRepository(instantiator)
 
@@ -198,8 +200,9 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         1 * instantiator.newInstance(implementationType) >> authentication
 
         where:
-        authenticationType  | implementationType         || authentication
-        BasicAuthentication | DefaultBasicAuthentication || Mock(BasicAuthentication)
+        authenticationType   | implementationType          || authentication
+        BasicAuthentication  | DefaultBasicAuthentication  || Mock(BasicAuthentication)
+        DigestAuthentication | DefaultDigestAuthentication || Mock(DigestAuthentication)
     }
 
     def "authentication(Class) throws IAE with authentication of unknown type"() {
