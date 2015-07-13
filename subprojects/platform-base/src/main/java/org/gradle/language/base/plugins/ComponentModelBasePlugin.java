@@ -170,9 +170,18 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                         @Override
                         public U apply(String s, MutableModelNode modelNode) {
                             final U binarySpec = factory.create(s);
-                            final Object parentObject = modelNode.getParent().getParent().getPrivateData();
-                            if (parentObject instanceof ComponentSpec && binarySpec instanceof ComponentSpecAware) {
-                                ((ComponentSpecAware) binarySpec).setComponent((ComponentSpec) parentObject);
+                            // TODO:LPTR Being lenient with parents here to make custom managed JarBinarySpec subtypes work outside of components
+                            if (binarySpec instanceof ComponentSpecAware) {
+                                final MutableModelNode parent = modelNode.getParent();
+                                if (parent != null) {
+                                    final MutableModelNode componentParent = parent.getParent();
+                                    if (componentParent != null) {
+                                        final Object parentObject = componentParent.getPrivateData();
+                                        if (parentObject instanceof ComponentSpec) {
+                                            ((ComponentSpecAware) binarySpec).setComponent((ComponentSpec) parentObject);
+                                        }
+                                    }
+                                }
                             }
 
                             return binarySpec;
